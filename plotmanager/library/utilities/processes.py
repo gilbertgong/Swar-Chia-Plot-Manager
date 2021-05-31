@@ -130,13 +130,10 @@ def get_system_drives():
 
 
 def identify_drive(file_path, drives):
-    if not file_path:
-        return None
-    for drive in drives:
-        if drive not in file_path:
-            continue
-        return drive
-    return None
+    path = os.path.abspath(file_path)
+    while not os.path.ismount(path):
+        path = os.path.dirname(path)
+    return path
 
 
 def get_plot_id(file_path=None, contents=None):
