@@ -47,6 +47,8 @@ def get_target_directories(job, running_work, drives_free_space, uniq_temp_dir=T
     if isinstance(job.temporary_directory, list):
         if uniq_temp_dir:
             temporary_directory = get_uniq_temp_dir(job, running_work)
+            if temporary_directory is None:
+                return None, None, None, job
         else:
             temporary_directory = job.temporary_directory[job_offset % len(job.temporary_directory)]
     if isinstance(job.temporary2_directory, list):
