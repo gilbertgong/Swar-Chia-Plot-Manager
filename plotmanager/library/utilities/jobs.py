@@ -18,7 +18,18 @@ def has_active_jobs_and_work(jobs):
     return False
 
 
-def get_target_directories(job, drives_free_space):
+def get_uniq_temp_dir(job, running_work):
+    available_temp_directory=job.temporary_directory
+    for work in running_work.values():
+        if work.temporary_directory in available_temp_directory:
+            available_temp_directory.remove(work.temporary_directory)
+    if len(available_temp_directory):
+        return available_temp_directory[0]
+    else:
+        return None
+
+
+def get_target_directories(job, running_work, drives_free_space, uniq_temp_dir=True):
     job_offset = job.total_completed + job.total_running
 
     if job.skip_full_destinations:
@@ -34,7 +45,10 @@ def get_target_directories(job, drives_free_space):
     if isinstance(job.destination_directory, list):
         destination_directory = job.destination_directory[job_offset % len(job.destination_directory)]
     if isinstance(job.temporary_directory, list):
-        temporary_directory = job.temporary_directory[job_offset % len(job.temporary_directory)]
+        if uniq_temp_dir:
+            temporary_directory = get_uniq_temp_dir(job, running_work)
+        else:
+            temporary_directory = job.temporary_directory[job_offset % len(job.temporary_directory)]
     if isinstance(job.temporary2_directory, list):
         temporary2_directory = job.temporary2_directory[job_offset % len(job.temporary2_directory)]
 
@@ -64,7 +78,7 @@ def check_valid_destinations(job, drives_free_space):
 
     return job
 
-        
+
 def load_jobs(config_jobs):
     jobs = []
     checked_job_names = []
@@ -257,6 +271,7 @@ def monitor_jobs_to_start(jobs, running_work, max_concurrent, max_for_phase_1, n
 
         job, work = start_work(
             job=job,
+            running_work=running_work,
             chia_location=chia_location,
             log_directory=log_directory,
             drives_free_space=drives_free_space,
@@ -271,7 +286,7 @@ def monitor_jobs_to_start(jobs, running_work, max_concurrent, max_for_phase_1, n
     return jobs, running_work, next_job_work, next_log_check
 
 
-def start_work(job, chia_location, log_directory, drives_free_space):
+def start_work(job, running_work, chia_location, log_directory, drives_free_space, uniq_temp_dir=True):
     logging.info(f'Starting new plot for job: {job.name}')
     nice_val = job.unix_process_priority
     if is_windows():
@@ -281,7 +296,7 @@ def start_work(job, chia_location, log_directory, drives_free_space):
     log_file_path = get_log_file_name(log_directory, job, now)
     logging.info(f'Job log file path: {log_file_path}')
     destination_directory, temporary_directory, temporary2_directory, job = \
-        get_target_directories(job, drives_free_space=drives_free_space)
+        get_target_directories(job, running_work, drives_free_space, uniq_temp_dir)
     if not destination_directory:
         return job, None
 
@@ -293,6 +308,9 @@ def start_work(job, chia_location, log_directory, drives_free_space):
     work.log_file = log_file_path
     work.datetime_start = now
     work.work_id = job.current_work_id
+    work.temporary_directory = temporary_directory
+    work.temporary2_directory = temporary2_directory
+    work.destination_directory = destination_directory
 
     job.current_work_id += 1
 

@@ -10,10 +10,10 @@ from datetime import datetime, timedelta
 from plotmanager.library.parse.configuration import get_config_info
 from plotmanager.library.utilities.configuration import test_configuration
 from plotmanager.library.utilities.exceptions import ManagerError, TerminationException
-from plotmanager.library.utilities.jobs import load_jobs
+from plotmanager.library.utilities.jobs import load_jobs, get_uniq_temp_dir
 from plotmanager.library.utilities.log import analyze_log_dates, check_log_progress, analyze_log_times
 from plotmanager.library.utilities.notifications import send_notifications
-from plotmanager.library.utilities.print import print_view, print_json
+from plotmanager.library.utilities.print import print_view, print_json, pretty_print_table, cell_to_str, pretty_print_elapsed_time
 from plotmanager.library.utilities.processes import is_windows, get_manager_processes, get_running_plots, \
     start_process, identify_drive, get_system_drives
 
@@ -192,3 +192,30 @@ def analyze_logs():
         minimum_minutes_between_jobs, progress_settings, notification_settings, debug_level, view_settings, \
         instrumentation_settings = get_config_info()
     analyze_log_times(log_directory)
+
+
+def show_running_plots() :
+    chia_location, log_directory, config_jobs, manager_check_interval, max_concurrent, max_for_phase_1, \
+        minimum_minutes_between_jobs, progress_settings, notification_settings, debug_level, view_settings, \
+        instrumentation_settings = get_config_info()
+
+    jobs = load_jobs(config_jobs)
+    _, running_work = get_running_plots(jobs)
+
+    headers = ['plot_id', 'pid', 'elapsed', 'temporary directory', 'destination_directory', 'log_file']
+    rows = [headers]
+    for job in jobs:
+        available = get_uniq_temp_dir(job, running_work)
+        print ("job: ", job.name)
+        available_temp_directory=job.temporary_directory
+        for work in running_work.values():
+            if work.pid in job.running_work:
+                ppet=pretty_print_elapsed_time(work.datetime_start)
+                rows.append(cell_to_str([work.plot_id[0:7], work.pid, ppet, work.temporary_directory, work.destination_directory, work.log_file]))
+                #print(work.pid, " ", work.temporary_directory)
+                if work.temporary_directory in available_temp_directory:
+                    available_temp_directory.remove(work.temporary_directory)
+        print(pretty_print_table(rows))
+        print("Available temp dirs: ", *available_temp_directory)
+        print("Next available temp dir: ", available)
+        #for pid in job.running_work

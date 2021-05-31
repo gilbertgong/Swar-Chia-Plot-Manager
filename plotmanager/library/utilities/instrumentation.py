@@ -20,14 +20,15 @@ def _get_metrics(instrumentation_settings):
         PROCESSED = True
 
 
-def set_plots_running(total_running_plots, job_name, instrumentation_settings):
-    _get_metrics(instrumentation_settings=instrumentation_settings)
-    if instrumentation_settings.get('prometheus_enabled', False) and GAUGE_PLOTS_RUNNING:
-        logging.info(f'Prometheus: Setting running plots {job_name}')
-        hostname = socket.gethostname()
-        GAUGE_PLOTS_RUNNING.labels(hostname=hostname, queue=job_name).set(total_running_plots)
-    else:
-        logging.debug('Prometheus instrumentation not enabled')
+def set_plots_running(total_running_plots, job_name, instrumentation_settings=None):
+    if instrumentation_settings is not None:
+        _get_metrics(instrumentation_settings=instrumentation_settings)
+        if instrumentation_settings.get('prometheus_enabled', False) and GAUGE_PLOTS_RUNNING:
+            logging.info(f'Prometheus: Setting running plots {job_name}')
+            hostname = socket.gethostname()
+            GAUGE_PLOTS_RUNNING.labels(hostname=hostname, queue=job_name).set(total_running_plots)
+        else:
+            logging.debug('Prometheus instrumentation not enabled')
 
 
 def increment_plots_completed(increment, job_name, instrumentation_settings):

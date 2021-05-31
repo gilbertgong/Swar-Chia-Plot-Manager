@@ -7,11 +7,19 @@ from datetime import datetime, timedelta
 from plotmanager.library.utilities.processes import get_manager_processes
 
 
+def cell_to_str(row):
+    return [str(cell) for cell in row]
+
+
+def pretty_print_elapsed_time(start):
+    elapsed_time = (datetime.now() - start)
+    return pretty_print_time(elapsed_time.seconds + elapsed_time.days * 86400)
+
+
 def _get_row_info(pid, running_work, view_settings, as_raw_values=False):
     work = running_work[pid]
     phase_times = work.phase_times
-    elapsed_time = (datetime.now() - work.datetime_start)
-    elapsed_time = pretty_print_time(elapsed_time.seconds + elapsed_time.days * 86400)
+    elapsed_time = pretty_print_elapsed_time(work.datetime_start)
     phase_time_log = []
     plot_id_prefix = ''
     if work.plot_id:

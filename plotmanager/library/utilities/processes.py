@@ -170,7 +170,7 @@ def get_temp_size(plot_id, temporary_directory, temporary2_directory):
     return temp_size
 
 
-def get_running_plots(jobs, running_work, instrumentation_settings):
+def get_running_plots(jobs, running_work={}, instrumentation_settings=None):
     chia_processes = []
     logging.info(f'Getting running plots')
     chia_executable_name = get_chia_executable_name()
@@ -257,6 +257,9 @@ def get_running_plots(jobs, running_work, instrumentation_settings):
         work.temporary_drive = temporary_drive
         work.temporary2_drive = temporary2_drive
         work.destination_drive = destination_drive
+        work.temporary_directory = temporary_directory
+        work.temporary2_directory = temporary2_directory
+        work.destination_directory = destination_directory
         work.temp_file_size = temp_file_size
         work.k_size = k_size
 
