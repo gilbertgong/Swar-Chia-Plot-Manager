@@ -261,6 +261,19 @@ def monitor_jobs_to_start(jobs, running_work, max_concurrent, max_for_phase_1, n
         if job.total_running >= job.max_concurrent_with_start_early:
             logging.info(f'Job\'s max concurrnet limit with start early has been met, skipping. Max: {job.max_concurrent_with_start_early}')
             continue
+
+        job, work = start_work(
+            job=job,
+            running_work=running_work,
+            chia_location=chia_location,
+            log_directory=log_directory,
+            drives_free_space=drives_free_space,
+        )
+        jobs[i] = deepcopy(job)
+        if work is None:
+            continue
+
+        # only stagger if we started up a plot task
         if job.stagger_minutes:
             next_job_work[job.name] = datetime.now() + timedelta(minutes=job.stagger_minutes)
             logging.info(f'Calculating new job stagger time. Next stagger kickoff: {next_job_work[job.name]}')
@@ -276,16 +289,6 @@ def monitor_jobs_to_start(jobs, running_work, max_concurrent, max_for_phase_1, n
                              f'stagger. Min: {minimum_stagger}, Current: {next_job_work[j.name]}')
                 next_job_work[j.name] = minimum_stagger
 
-        job, work = start_work(
-            job=job,
-            running_work=running_work,
-            chia_location=chia_location,
-            log_directory=log_directory,
-            drives_free_space=drives_free_space,
-        )
-        jobs[i] = deepcopy(job)
-        if work is None:
-            continue
         total_phase_1_count += 1
         next_log_check = datetime.now()
         running_work[work.pid] = work
