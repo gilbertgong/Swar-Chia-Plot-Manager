@@ -82,6 +82,10 @@ if minimum_minutes_between_jobs and len(running_work.keys()) > 0:
 
 logging.info(f'Starting loop.')
 while has_active_jobs_and_work(jobs):
+    logging.info(f'Refreshing running plot info..')
+    running_work = {}
+    jobs, running_work = get_running_plots(jobs=jobs, running_work=running_work,
+                                       instrumentation_settings=instrumentation_settings)
     # CHECK LOGS FOR DELETED WORK
     logging.info(f'Checking log progress..')
     check_log_progress(jobs=jobs, running_work=running_work, progress_settings=progress_settings,
