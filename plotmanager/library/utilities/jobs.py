@@ -19,7 +19,7 @@ def has_active_jobs_and_work(jobs):
 
 
 def get_uniq_temp_dir(job, running_work):
-    available_temp_directory=job.temporary_directory
+    available_temp_directory=job.temporary_directory.copy()
     for work in running_work.values():
         if work.temporary_directory in available_temp_directory:
             if psutil.pid_exists(work.pid):
