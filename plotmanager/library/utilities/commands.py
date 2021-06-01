@@ -201,8 +201,11 @@ def show_running_plots() :
 
     jobs = load_jobs(config_jobs)
     _, running_work = get_running_plots(jobs)
+    check_log_progress(jobs=jobs, running_work=running_work, progress_settings=progress_settings,
+                       notification_settings=notification_settings, view_settings=view_settings,
+                       instrumentation_settings=instrumentation_settings)
 
-    headers = ['plot_id', 'pid', 'elapsed', 'temporary directory', 'destination_directory', 'log_file']
+    headers = ['phase', 'plot id', 'pid', 'elapsed', 'temp dir', 'dest dir', 'log file']
     rows = [headers]
     for job in jobs:
         available = get_uniq_temp_dir(job, running_work)
@@ -211,7 +214,8 @@ def show_running_plots() :
         for work in running_work.values():
             if work.pid in job.running_work:
                 ppet=pretty_print_elapsed_time(work.datetime_start)
-                rows.append(cell_to_str([work.plot_id[0:7], work.pid, ppet, work.temporary_directory, work.destination_directory, work.log_file]))
+                rows.append(cell_to_str([work.current_phase, work.plot_id[0:7], work.pid, ppet,
+                            work.temporary_directory, work.destination_directory, work.log_file]))
                 #print(work.pid, " ", work.temporary_directory)
                 if work.temporary_directory in available_temp_directory:
                     available_temp_directory.remove(work.temporary_directory)
