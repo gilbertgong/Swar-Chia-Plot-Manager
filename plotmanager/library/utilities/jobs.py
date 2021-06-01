@@ -24,7 +24,7 @@ def get_uniq_temp_dir(job, running_work):
         if work.temporary_directory in available_temp_directory:
             if psutil.pid_exists(work.pid):
                 available_temp_directory.remove(work.temporary_directory)
-    if len(available_temp_directory):
+    if available_temp_directory:
         available = available_temp_directory[0]
         logging.info('Found available unique temp dir: ', available)
         return available
